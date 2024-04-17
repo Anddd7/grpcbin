@@ -18,11 +18,11 @@ jobs:
         with:
           go-version: '1.22'
 
-      - name: Install protobuf
-        run: make dependency
-
       - name: Install dependencies
         run: go mod download
+      
+      - name: Install protobuf
+        run: make dependency
 
       - name: Generate protobuf
         run: make proto
