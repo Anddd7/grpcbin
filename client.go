@@ -122,7 +122,9 @@ func (cmd *ServerStreamingCmd) Run(globals *Globals) error {
 
 type ClientStreamingCmd struct {
 	pb.RequestAttributes
-	Messages []string
+	Message string
+	Count   int32
+	Headers map[string]string
 }
 
 func (cmd *ClientStreamingCmd) Run(globals *Globals) error {
@@ -131,15 +133,16 @@ func (cmd *ClientStreamingCmd) Run(globals *Globals) error {
 		return err
 	}
 
-	stream, err := client.ClientStreaming(context.Background())
+	ctx := metadata.NewOutgoingContext(context.Background(), metadata.New(cmd.Headers))
+	stream, err := client.ClientStreaming(ctx)
 	if err != nil {
 		slog.Error("Client Streaming RPC failed", "err", err)
 		return err
 	}
-	for _, message := range cmd.Messages {
+	for i := 0; i < int(cmd.Count); i++ {
 		err := stream.Send(&pb.ClientStreamingRequest{
 			RequestAttributes: &cmd.RequestAttributes,
-			Data:              []string{message},
+			Data:              cmd.Message,
 		})
 		if err != nil {
 			slog.Error("Failed to send client streaming request", "err", err)
@@ -151,7 +154,8 @@ func (cmd *ClientStreamingCmd) Run(globals *Globals) error {
 		slog.Error("Failed to receive client streaming response", "err", err)
 		return err
 	}
-	slog.Info("Client Streaming Response", "response", response)
+
+	printResponse(ctx, response.Result, response.ResponseAttributes)
 
 	return nil
 }

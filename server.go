@@ -53,14 +53,14 @@ func (s *server) Unary(ctx context.Context, req *pb.UnaryRequest) (*pb.UnaryResp
 	}
 
 	if reqAttrs.HttpCode > 0 {
-		slog.Debug("Returning HTTP status", "code", req.RequestAttributes.HttpCode)
+		slog.Debug("Returning HTTP status", "code", reqAttrs.HttpCode)
 		if reqAttrs.HttpCode > 400 {
 			return nil, status.Error(codes.Code(req.RequestAttributes.HttpCode), "HTTP status code returned")
 		}
 	}
 
 	if reqAttrs.Delay > 0 {
-		slog.Debug("Sleeping", "delay", req.RequestAttributes.Delay)
+		slog.Debug("Sleeping", "delay", reqAttrs.Delay)
 		time.Sleep(time.Duration(req.RequestAttributes.Delay) * time.Second)
 	}
 
@@ -106,7 +106,7 @@ func (s *server) ServerStreaming(req *pb.ServerStreamingRequest, stream pb.Grpcb
 	}
 
 	if reqAttrs.HttpCode > 0 {
-		slog.Debug("Returning HTTP status", "code", req.RequestAttributes.HttpCode)
+		slog.Debug("Returning HTTP status", "code", reqAttrs.HttpCode)
 		if reqAttrs.HttpCode > 400 {
 			return status.Error(codes.Code(req.RequestAttributes.HttpCode), "HTTP status code returned")
 		}
@@ -141,7 +141,57 @@ func (s *server) ServerStreaming(req *pb.ServerStreamingRequest, stream pb.Grpcb
 }
 
 func (s *server) ClientStreaming(stream pb.GrpcbinService_ClientStreamingServer) error {
-	// Your implementation here
+	ctx := stream.Context()
+	var reqAttrs *pb.RequestAttributes
+	respAttrs, err := getResponseAttributes(ctx)
+	if err != nil {
+		return err
+	}
+
+	var receivedData []string
+	for {
+		req, err := stream.Recv()
+		if err != nil {
+			if err.Error() == "EOF" {
+				break
+			}
+			slog.Error("Error receiving data from client", "err", err)
+			return err
+		}
+
+		reqAttrs = req.RequestAttributes
+		receivedData = append(receivedData, req.Data)
+	}
+
+	if reqAttrs.HttpCode > 0 {
+		slog.Debug("Returning HTTP status", "code", reqAttrs.HttpCode)
+		if reqAttrs.HttpCode > 400 {
+			return status.Error(codes.Code(reqAttrs.HttpCode), "HTTP status code returned")
+		}
+	}
+
+	if reqAttrs.Delay > 0 {
+		slog.Debug("Sleeping", "delay", reqAttrs.Delay)
+		time.Sleep(time.Duration(reqAttrs.Delay) * time.Second)
+	}
+
+	if reqAttrs.ResponseHeaders != nil {
+		for key, value := range reqAttrs.ResponseHeaders {
+			grpc.SendHeader(ctx, metadata.Pairs(key, value))
+		}
+	}
+
+	response := &pb.ClientStreamingResponse{
+		ResponseAttributes: respAttrs,
+		Result:             strings.Join(receivedData, ", "),
+	}
+	if err := stream.SendAndClose(response); err != nil {
+		log.Printf("Error sending response to client: %v", err)
+		return err
+	}
+
+	log.Println("Client streaming completed")
+
 	return nil
 }
 
