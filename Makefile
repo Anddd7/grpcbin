@@ -1,3 +1,5 @@
+NEXT_VERSION:=$(shell semtag final -o)
+
 dependency:
 	sudo apt-get update -y
 	sudo apt-get install -y protobuf-compiler
@@ -18,3 +20,13 @@ build: proto
 
 install: build
 	mv ./bin/grpcbin ~/bin
+
+release:
+	echo "increasing version to $(NEXT_VERSION)"
+	@sed -i 's/"version": "[0-9]*\.[0-9]*\.[0-9]*"/"version": "$(NEXT_VERSION)"/' main.go
+	@git add main.go
+	@git commit -m "Auto Release - $(NEXT_VERSION)"
+	@git tag $(NEXT_VERSION)
+	echo "pushing to origin"
+	@git push origin main
+	@git push origin $(NEXT_VERSION)
