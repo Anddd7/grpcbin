@@ -32,41 +32,41 @@ message ResponseAttributes {
 }
 
 message UnaryRequest {
-    string data = 1;
-    RequestAttributes request_attributes = 2;
+    RequestAttributes request_attributes = 1;
+    string data = 2;
 }
 
 message UnaryResponse {
-    string result = 1;
-    ResponseAttributes response_attributes = 2;
+    ResponseAttributes response_attributes = 1;
+    string result = 2;
 }
 
 message ServerStreamingRequest {
-    string data = 1;
-    RequestAttributes request_attributes = 2;
+    RequestAttributes request_attributes = 1;
+    string data = 2;
 }
 
 message ServerStreamingResponse {
-    repeated string result = 1;
-    ResponseAttributes response_attributes = 2;
+    ResponseAttributes response_attributes = 1;
+    repeated string result = 2;
 }
 
 message ClientStreamingRequest {
-    repeated string data = 1;
-    RequestAttributes request_attributes = 2;
+    RequestAttributes request_attributes = 1;
+    repeated string data = 2;
 }
 
 message ClientStreamingResponse {
-    string result = 1;
-    ResponseAttributes response_attributes = 2;
+    ResponseAttributes response_attributes = 1;
+    string result = 2;
 }
 
 message BidirectionalStreamingRequest {
-    repeated string data = 1;
-    RequestAttributes request_attributes = 2;
+    RequestAttributes request_attributes = 1;
+    repeated string data = 2;
 }
 
 message BidirectionalStreamingResponse {
-    string result = 1;
-    ResponseAttributes response_attributes = 2;
+    ResponseAttributes response_attributes = 1;
+    string result = 2;
 }

@@ -84,7 +84,10 @@ func (s *server) Unary(ctx context.Context, req *pb.UnaryRequest) (*pb.UnaryResp
 		RequestHeaders:     headers,
 	}
 
-	return &pb.UnaryResponse{Result: req.Data, ResponseAttributes: respAttrs}, nil
+	return &pb.UnaryResponse{
+		ResponseAttributes: respAttrs,
+		Result:             req.Data,
+	}, nil
 }
 
 func (s *server) ServerStreaming(req *pb.ServerStreamingRequest, stream pb.GrpcbinService_ServerStreamingServer) error {

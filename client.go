@@ -27,8 +27,8 @@ func connect(serverAddr string) (pb.GrpcbinServiceClient, error) {
 }
 
 type UnaryCmd struct {
-	Message string
 	pb.RequestAttributes
+	Message string
 	Headers map[string]string
 }
 
@@ -40,8 +40,8 @@ func (cmd *UnaryCmd) Run(globals *Globals) error {
 
 	ctx := metadata.NewOutgoingContext(context.Background(), metadata.New(cmd.Headers))
 	response, err := client.Unary(ctx, &pb.UnaryRequest{
-		Data:              cmd.Message,
 		RequestAttributes: &cmd.RequestAttributes,
+		Data:              cmd.Message,
 	})
 
 	if err != nil {
@@ -83,8 +83,8 @@ func printResponse(ctx context.Context, result string, respAttrs *pb.ResponseAtt
 }
 
 type ServerStreamingCmd struct {
-	Message string
 	pb.RequestAttributes
+	Message string
 }
 
 func (cmd *ServerStreamingCmd) Run(globals *Globals) error {
@@ -94,8 +94,8 @@ func (cmd *ServerStreamingCmd) Run(globals *Globals) error {
 	}
 
 	stream, err := client.ServerStreaming(context.Background(), &pb.ServerStreamingRequest{
-		Data:              cmd.Message,
 		RequestAttributes: &cmd.RequestAttributes,
+		Data:              cmd.Message,
 	})
 	if err != nil {
 		slog.Error("Server Streaming RPC failed", "err", err)
@@ -112,8 +112,8 @@ func (cmd *ServerStreamingCmd) Run(globals *Globals) error {
 }
 
 type ClientStreamingCmd struct {
-	Messages []string
 	pb.RequestAttributes
+	Messages []string
 }
 
 func (cmd *ClientStreamingCmd) Run(globals *Globals) error {
@@ -129,8 +129,8 @@ func (cmd *ClientStreamingCmd) Run(globals *Globals) error {
 	}
 	for _, message := range cmd.Messages {
 		err := stream.Send(&pb.ClientStreamingRequest{
-			Data:              []string{message},
 			RequestAttributes: &cmd.RequestAttributes,
+			Data:              []string{message},
 		})
 		if err != nil {
 			slog.Error("Failed to send client streaming request", "err", err)
@@ -148,8 +148,8 @@ func (cmd *ClientStreamingCmd) Run(globals *Globals) error {
 }
 
 type BidirectionalStreamingCmd struct {
-	Messages []string
 	pb.RequestAttributes
+	Messages []string
 }
 
 func (cmd *BidirectionalStreamingCmd) Run(globals *Globals) error {
@@ -165,8 +165,8 @@ func (cmd *BidirectionalStreamingCmd) Run(globals *Globals) error {
 	}
 	for _, message := range cmd.Messages {
 		err := stream.Send(&pb.BidirectionalStreamingRequest{
-			Data:              []string{message},
 			RequestAttributes: &cmd.RequestAttributes,
+			Data:              []string{message},
 		})
 		if err != nil {
 			slog.Error("Failed to send bidirectional streaming request", "err", err)
