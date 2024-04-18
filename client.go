@@ -15,8 +15,12 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-func connect(serverAddr string) (pb.GrpcbinServiceClient, error) {
-	conn, err := grpc.Dial(serverAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+func connect(serverAddr string, host string) (pb.GrpcbinServiceClient, error) {
+	conn, err := grpc.Dial(
+		serverAddr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithAuthority(host),
+	)
 	if err != nil {
 		slog.Error("failed to connect", "err", err)
 		return nil, err
@@ -34,7 +38,7 @@ type UnaryCmd struct {
 }
 
 func (cmd *UnaryCmd) Run(globals *Globals) error {
-	client, err := connect(fmt.Sprintf("%s:%d", globals.Host, globals.Port))
+	client, err := connect(fmt.Sprintf("%s:%d", globals.Server, globals.Port), globals.Host)
 	if err != nil {
 		return err
 	}
@@ -91,7 +95,7 @@ type ServerStreamingCmd struct {
 }
 
 func (cmd *ServerStreamingCmd) Run(globals *Globals) error {
-	client, err := connect(fmt.Sprintf("%s:%d", globals.Host, globals.Port))
+	client, err := connect(fmt.Sprintf("%s:%d", globals.Server, globals.Port), globals.Host)
 	if err != nil {
 		return err
 	}
@@ -128,7 +132,7 @@ type ClientStreamingCmd struct {
 }
 
 func (cmd *ClientStreamingCmd) Run(globals *Globals) error {
-	client, err := connect(fmt.Sprintf("%s:%d", globals.Host, globals.Port))
+	client, err := connect(fmt.Sprintf("%s:%d", globals.Server, globals.Port), globals.Host)
 	if err != nil {
 		return err
 	}
@@ -168,7 +172,7 @@ type BidirectionalStreamingCmd struct {
 }
 
 func (cmd *BidirectionalStreamingCmd) Run(globals *Globals) error {
-	client, err := connect(fmt.Sprintf("%s:%d", globals.Host, globals.Port))
+	client, err := connect(fmt.Sprintf("%s:%d", globals.Server, globals.Port), globals.Host)
 	if err != nil {
 		return err
 	}

@@ -8,19 +8,20 @@ import (
 )
 
 type Globals struct {
-	Debug bool   `short:"d"`
-	Host  string `default:"localhost"`
-	Port  int    `default:"50051"`
+	Debug  bool   `short:"d" help:"enable debug mode"`
+	Server string `default:"localhost" help:"server address"`
+	Port   int    `default:"50051" help:"server port"`
+	Host   string `default:"localhost" help:"server host, used for load balancing"`
 }
 
 type CLI struct {
 	Globals
 
-	Serve                  ServeCmd                  `cmd:""`
-	Unary                  UnaryCmd                  `cmd:""`
-	ServerStreaming        ServerStreamingCmd        `cmd:"" aliases:"srvstr"`
-	ClientStreaming        ClientStreamingCmd        `cmd:"" aliases:"clistr"`
-	BidirectionalStreaming BidirectionalStreamingCmd `cmd:"" aliases:"bistr"`
+	Serve                  ServeCmd                  `cmd:"" help:"start a gRPC server"`
+	Unary                  UnaryCmd                  `cmd:"" help:"perform a unary call"`
+	ServerStreaming        ServerStreamingCmd        `cmd:"" aliases:"srvstr" help:"perform a server streaming call"`
+	ClientStreaming        ClientStreamingCmd        `cmd:"" aliases:"clistr" help:"perform a client streaming call"`
+	BidirectionalStreaming BidirectionalStreamingCmd `cmd:"" aliases:"bistr" help:"perform a bidirectional streaming call"`
 }
 
 func main() {
