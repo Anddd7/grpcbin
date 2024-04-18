@@ -196,6 +196,52 @@ func (s *server) ClientStreaming(stream pb.GrpcbinService_ClientStreamingServer)
 }
 
 func (s *server) BidirectionalStreaming(stream pb.GrpcbinService_BidirectionalStreamingServer) error {
-	// Your implementation here
+	ctx := stream.Context()
+	respAttrs, err := getResponseAttributes(ctx)
+	if err != nil {
+		return err
+	}
+
+	for {
+		req, err := stream.Recv()
+		if err != nil {
+			if err.Error() == "EOF" {
+				break
+			} else {
+				log.Printf("Error receiving data from client: %v", err)
+				return err
+			}
+		}
+
+		reqAttrs := req.RequestAttributes
+
+		if reqAttrs.HttpCode > 0 {
+			slog.Debug("Returning HTTP status", "code", reqAttrs.HttpCode)
+			if reqAttrs.HttpCode > 400 {
+				return status.Error(codes.Code(reqAttrs.HttpCode), "HTTP status code returned")
+			}
+		}
+
+		if reqAttrs.Delay > 0 {
+			slog.Debug("Sleeping", "delay", reqAttrs.Delay)
+			time.Sleep(time.Duration(reqAttrs.Delay) * time.Second)
+		}
+
+		if reqAttrs.ResponseHeaders != nil {
+			for key, value := range reqAttrs.ResponseHeaders {
+				grpc.SendHeader(ctx, metadata.Pairs(key, value))
+			}
+		}
+
+		response := &pb.BidirectionalStreamingResponse{
+			ResponseAttributes: respAttrs,
+			Result:             req.Data,
+		}
+		if err := stream.Send(response); err != nil {
+			slog.Error("Failed to send response", "err", err)
+			return err
+		}
+	}
+
 	return nil
 }

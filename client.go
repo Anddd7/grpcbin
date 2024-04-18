@@ -162,7 +162,9 @@ func (cmd *ClientStreamingCmd) Run(globals *Globals) error {
 
 type BidirectionalStreamingCmd struct {
 	pb.RequestAttributes
-	Messages []string
+	Message string
+	Count   int32
+	Headers map[string]string
 }
 
 func (cmd *BidirectionalStreamingCmd) Run(globals *Globals) error {
@@ -171,15 +173,16 @@ func (cmd *BidirectionalStreamingCmd) Run(globals *Globals) error {
 		return err
 	}
 
-	stream, err := client.BidirectionalStreaming(context.Background())
+	ctx := metadata.NewOutgoingContext(context.Background(), metadata.New(cmd.Headers))
+	stream, err := client.BidirectionalStreaming(ctx)
 	if err != nil {
 		slog.Error("Bidirectional Streaming RPC failed", "err", err)
 		return err
 	}
-	for _, message := range cmd.Messages {
+	for i := 0; i < int(cmd.Count); i++ {
 		err := stream.Send(&pb.BidirectionalStreamingRequest{
 			RequestAttributes: &cmd.RequestAttributes,
-			Data:              []string{message},
+			Data:              fmt.Sprintf("stream_%d %s", i+1, cmd.Message),
 		})
 		if err != nil {
 			slog.Error("Failed to send bidirectional streaming request", "err", err)
@@ -190,7 +193,13 @@ func (cmd *BidirectionalStreamingCmd) Run(globals *Globals) error {
 			slog.Error("Failed to receive bidirectional streaming response", "err", err)
 			return err
 		}
-		slog.Info("Bidirectional Streaming Response", "response", response)
+
+		printResponse(ctx, response.Result, response.ResponseAttributes)
+	}
+
+	err = stream.CloseSend()
+	if err != nil {
+		slog.Error("Failed to close bidirectional streaming", "err", err)
 	}
 
 	return nil

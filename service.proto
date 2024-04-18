@@ -64,7 +64,7 @@ message ClientStreamingResponse {
 
 message BidirectionalStreamingRequest {
     RequestAttributes request_attributes = 1;
-    repeated string data = 2;
+    string data = 2;
 }
 
 message BidirectionalStreamingResponse {
