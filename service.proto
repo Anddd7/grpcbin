@@ -44,11 +44,12 @@ message UnaryResponse {
 message ServerStreamingRequest {
     RequestAttributes request_attributes = 1;
     string data = 2;
+    int32 count = 3;
 }
 
 message ServerStreamingResponse {
     ResponseAttributes response_attributes = 1;
-    repeated string result = 2;
+    string result = 2;
 }
 
 message ClientStreamingRequest {

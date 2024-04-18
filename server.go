@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
 	"net"
 	"strings"
@@ -45,6 +46,37 @@ type server struct {
 }
 
 func (s *server) Unary(ctx context.Context, req *pb.UnaryRequest) (*pb.UnaryResponse, error) {
+	reqAttrs := req.RequestAttributes
+	respAttrs, err := getResponseAttributes(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if reqAttrs.HttpCode > 0 {
+		slog.Debug("Returning HTTP status", "code", req.RequestAttributes.HttpCode)
+		if reqAttrs.HttpCode > 400 {
+			return nil, status.Error(codes.Code(req.RequestAttributes.HttpCode), "HTTP status code returned")
+		}
+	}
+
+	if reqAttrs.Delay > 0 {
+		slog.Debug("Sleeping", "delay", req.RequestAttributes.Delay)
+		time.Sleep(time.Duration(req.RequestAttributes.Delay) * time.Second)
+	}
+
+	if reqAttrs.ResponseHeaders != nil {
+		for key, value := range reqAttrs.ResponseHeaders {
+			grpc.SendHeader(ctx, metadata.Pairs(key, value))
+		}
+	}
+
+	return &pb.UnaryResponse{
+		ResponseAttributes: respAttrs,
+		Result:             req.Data,
+	}, nil
+}
+
+func getResponseAttributes(ctx context.Context) (*pb.ResponseAttributes, error) {
 	p, _ := peer.FromContext(ctx)
 
 	md, ok := metadata.FromIncomingContext(ctx)
@@ -57,17 +89,26 @@ func (s *server) Unary(ctx context.Context, req *pb.UnaryRequest) (*pb.UnaryResp
 		headers[key] = strings.Join(values, ",")
 	}
 
-	reqAttrs := req.RequestAttributes
+	return &pb.ResponseAttributes{
+		RequesterIp:        p.Addr.String(),
+		RequesterHost:      headers["host"],
+		RequesterUserAgent: headers["user-agent"],
+		RequestHeaders:     headers,
+	}, nil
+}
 
-	if reqAttrs.Delay > 0 {
-		slog.Debug("Sleeping", "delay", req.RequestAttributes.Delay)
-		time.Sleep(time.Duration(req.RequestAttributes.Delay) * time.Second)
+func (s *server) ServerStreaming(req *pb.ServerStreamingRequest, stream pb.GrpcbinService_ServerStreamingServer) error {
+	ctx := stream.Context()
+	reqAttrs := req.RequestAttributes
+	respAttrs, err := getResponseAttributes(ctx)
+	if err != nil {
+		return err
 	}
 
 	if reqAttrs.HttpCode > 0 {
 		slog.Debug("Returning HTTP status", "code", req.RequestAttributes.HttpCode)
 		if reqAttrs.HttpCode > 400 {
-			return nil, status.Error(codes.Code(req.RequestAttributes.HttpCode), "HTTP status code returned")
+			return status.Error(codes.Code(req.RequestAttributes.HttpCode), "HTTP status code returned")
 		}
 	}
 
@@ -77,21 +118,25 @@ func (s *server) Unary(ctx context.Context, req *pb.UnaryRequest) (*pb.UnaryResp
 		}
 	}
 
-	respAttrs := &pb.ResponseAttributes{
-		RequesterIp:        p.Addr.String(),
-		RequesterHost:      headers["host"],
-		RequesterUserAgent: headers["user-agent"],
-		RequestHeaders:     headers,
+	for i := 0; i < int(max(req.Count, 1)); i++ {
+		if reqAttrs.Delay > 0 {
+			slog.Debug("Sleeping", "delay", reqAttrs.Delay)
+			time.Sleep(time.Duration(reqAttrs.Delay) * time.Second)
+		}
+
+		result := fmt.Sprintf("stream_%d %s", i+1, req.Data)
+		response := &pb.ServerStreamingResponse{
+			ResponseAttributes: respAttrs,
+			Result:             result,
+		}
+		if err := stream.Send(response); err != nil {
+			slog.Error("Failed to send response", "err", err)
+			return err
+		}
 	}
 
-	return &pb.UnaryResponse{
-		ResponseAttributes: respAttrs,
-		Result:             req.Data,
-	}, nil
-}
+	log.Println("Server streaming completed")
 
-func (s *server) ServerStreaming(req *pb.ServerStreamingRequest, stream pb.GrpcbinService_ServerStreamingServer) error {
-	// Your implementation here
 	return nil
 }
 

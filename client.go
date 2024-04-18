@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"log/slog"
 	"strings"
@@ -85,6 +86,8 @@ func printResponse(ctx context.Context, result string, respAttrs *pb.ResponseAtt
 type ServerStreamingCmd struct {
 	pb.RequestAttributes
 	Message string
+	Count   int32
+	Headers map[string]string
 }
 
 func (cmd *ServerStreamingCmd) Run(globals *Globals) error {
@@ -93,21 +96,27 @@ func (cmd *ServerStreamingCmd) Run(globals *Globals) error {
 		return err
 	}
 
-	stream, err := client.ServerStreaming(context.Background(), &pb.ServerStreamingRequest{
+	ctx := metadata.NewOutgoingContext(context.Background(), metadata.New(cmd.Headers))
+	stream, err := client.ServerStreaming(ctx, &pb.ServerStreamingRequest{
 		RequestAttributes: &cmd.RequestAttributes,
 		Data:              cmd.Message,
+		Count:             cmd.Count,
 	})
 	if err != nil {
 		slog.Error("Server Streaming RPC failed", "err", err)
 		return err
 	}
+
 	for {
 		response, err := stream.Recv()
 		if err != nil {
-			slog.Error("Server Streaming RPC stream closed", "err", err)
-			return err
+			if err != io.EOF {
+				slog.Error("Server Streaming RPC stream closed", "err", err)
+				return err
+			}
+			return nil
 		}
-		slog.Info("Server Streaming Response", "response", response)
+		printResponse(ctx, response.Result, response.ResponseAttributes)
 	}
 }
 
