@@ -3,6 +3,7 @@ package main
 import (
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/alecthomas/kong"
 )
@@ -45,6 +46,12 @@ func main() {
 		slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &opts)))
 	}
 
+	startTime := time.Now()
+
 	err := ctx.Run(&cli.Globals)
-	ctx.FatalIfErrorf(err)
+	if err != nil {
+		slog.Error("failed", "err", err)
+	}
+
+	slog.Info("Execution", "time", time.Since(startTime))
 }
