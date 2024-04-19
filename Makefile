@@ -23,7 +23,7 @@ install: build
 
 release:
 	echo "increasing version to $(NEXT_VERSION)"
-	@sed -i 's/"version": "[0-9]*\.[0-9]*\.[0-9]*"/"version": "$(NEXT_VERSION)"/' main.go
+	@sed -i 's/"version": "v[0-9]*\.[0-9]*\.[0-9]*"/"version": "$(NEXT_VERSION)"/' main.go
 	@git add main.go
 	@git commit -m "Auto Release - $(NEXT_VERSION)"
 	@git tag $(NEXT_VERSION)
