@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"log/slog"
 	"strings"
 
@@ -43,29 +42,28 @@ func (cmd *UnaryCmd) Run(globals *Globals) error {
 		return err
 	}
 
+	var headers, trailers metadata.MD
 	ctx := metadata.NewOutgoingContext(context.Background(), metadata.New(cmd.Headers))
 	response, err := client.Unary(ctx, &pb.UnaryRequest{
 		RequestAttributes: &cmd.RequestAttributes,
 		Data:              cmd.Message,
-	})
+	},
+		grpc.Header(&headers),
+		grpc.Trailer(&trailers),
+	)
 
 	if err != nil {
 		slog.Error("Unary RPC failed", "err", err)
 		return err
 	}
 
-	printResponse(ctx, response.Result, response.ResponseAttributes)
+	printResponse(headers, trailers, response.Result, response.ResponseAttributes)
 
 	return nil
 }
 
-func printResponse(ctx context.Context, result string, respAttrs *pb.ResponseAttributes) {
+func printResponse(headers, trailers metadata.MD, result string, respAttrs *pb.ResponseAttributes) {
 	slog.Info(">>---->>---->>---->>---->>---->>")
-
-	md, ok := metadata.FromOutgoingContext(ctx)
-	if !ok {
-		log.Printf("Failed to get metadata from response context")
-	}
 
 	slog.Info("Request Inspection")
 	slog.Info("-", "requester_ip", respAttrs.RequesterIp)
@@ -76,11 +74,21 @@ func printResponse(ctx context.Context, result string, respAttrs *pb.ResponseAtt
 	for key, value := range respAttrs.RequestHeaders {
 		slog.Info("-", key, value)
 	}
+
 	slog.Info("<<----<<----<<----<<----<<----<<")
 
-	slog.Info("Response Headers")
-	for key, values := range md {
-		slog.Info("-", key, strings.Join(values, ","))
+	if len(headers) > 0 {
+		slog.Info("Response Headers")
+		for key, values := range headers {
+			slog.Info("-", key, strings.Join(values, ","))
+		}
+	}
+
+	if len(trailers) > 0 {
+		slog.Info("Response Trailers")
+		for key, values := range trailers {
+			slog.Info("-", key, strings.Join(values, ","))
+		}
 	}
 
 	slog.Info("Response Body")
@@ -90,7 +98,7 @@ func printResponse(ctx context.Context, result string, respAttrs *pb.ResponseAtt
 type ServerStreamingCmd struct {
 	pb.RequestAttributes
 	Message string
-	Count   int32
+	Count   int32 `default:"1"`
 	Headers map[string]string
 }
 
@@ -106,6 +114,7 @@ func (cmd *ServerStreamingCmd) Run(globals *Globals) error {
 		Data:              cmd.Message,
 		Count:             cmd.Count,
 	})
+
 	if err != nil {
 		slog.Error("Server Streaming RPC failed", "err", err)
 		return err
@@ -120,14 +129,16 @@ func (cmd *ServerStreamingCmd) Run(globals *Globals) error {
 			}
 			return nil
 		}
-		printResponse(ctx, response.Result, response.ResponseAttributes)
+		headers, _ := stream.Header()
+		trailers := stream.Trailer()
+		printResponse(headers, trailers, response.Result, response.ResponseAttributes)
 	}
 }
 
 type ClientStreamingCmd struct {
 	pb.RequestAttributes
 	Message string
-	Count   int32
+	Count   int32 `default:"1"`
 	Headers map[string]string
 }
 
@@ -159,7 +170,9 @@ func (cmd *ClientStreamingCmd) Run(globals *Globals) error {
 		return err
 	}
 
-	printResponse(ctx, response.Result, response.ResponseAttributes)
+	headers, _ := stream.Header()
+	trailers := stream.Trailer()
+	printResponse(headers, trailers, response.Result, response.ResponseAttributes)
 
 	return nil
 }
@@ -167,7 +180,7 @@ func (cmd *ClientStreamingCmd) Run(globals *Globals) error {
 type BidirectionalStreamingCmd struct {
 	pb.RequestAttributes
 	Message string
-	Count   int32
+	Count   int32 `default:"1"`
 	Headers map[string]string
 }
 
@@ -198,7 +211,9 @@ func (cmd *BidirectionalStreamingCmd) Run(globals *Globals) error {
 			return err
 		}
 
-		printResponse(ctx, response.Result, response.ResponseAttributes)
+		headers, _ := stream.Header()
+		trailers := stream.Trailer()
+		printResponse(headers, trailers, response.Result, response.ResponseAttributes)
 	}
 
 	err = stream.CloseSend()

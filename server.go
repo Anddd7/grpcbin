@@ -142,7 +142,8 @@ func (s *server) ServerStreaming(req *pb.ServerStreamingRequest, stream pb.Grpcb
 
 func (s *server) ClientStreaming(stream pb.GrpcbinService_ClientStreamingServer) error {
 	ctx := stream.Context()
-	var reqAttrs *pb.RequestAttributes
+	// avoid nil pointer if no request
+	reqAttrs := &pb.RequestAttributes{}
 	respAttrs, err := getResponseAttributes(ctx)
 	if err != nil {
 		return err
