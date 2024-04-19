@@ -10,6 +10,7 @@ import (
 	"time"
 
 	pb "github.com/Anddd7/rubber-duck/grpcbin/pb"
+	grpc_health_pb "google.golang.org/grpc/health/grpc_health_v1"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -32,6 +33,8 @@ func (cmd *ServeCmd) Run(globals *Globals) error {
 
 	s := grpc.NewServer()
 	pb.RegisterGrpcbinServiceServer(s, &server{})
+	grpc_health_pb.RegisterHealthServer(s, &server{})
+
 	slog.Info("Server listening on", "addr", port)
 	if err := s.Serve(lis); err != nil {
 		slog.Error("failed to serve", "err", err)
@@ -43,6 +46,7 @@ func (cmd *ServeCmd) Run(globals *Globals) error {
 
 type server struct {
 	pb.UnimplementedGrpcbinServiceServer
+	grpc_health_pb.UnimplementedHealthServer
 }
 
 func (s *server) Unary(ctx context.Context, req *pb.UnaryRequest) (*pb.UnaryResponse, error) {
@@ -245,4 +249,19 @@ func (s *server) BidirectionalStreaming(stream pb.GrpcbinService_BidirectionalSt
 	}
 
 	return nil
+}
+
+func (s *server) Check(ctx context.Context, req *grpc_health_pb.HealthCheckRequest) (*grpc_health_pb.HealthCheckResponse, error) {
+	return &grpc_health_pb.HealthCheckResponse{
+		Status: grpc_health_pb.HealthCheckResponse_SERVING,
+	}, nil
+}
+
+func (s *server) Watch(req *grpc_health_pb.HealthCheckRequest, stream grpc_health_pb.Health_WatchServer) error {
+	for {
+		if err := stream.Send(&grpc_health_pb.HealthCheckResponse{Status: grpc_health_pb.HealthCheckResponse_SERVING}); err != nil {
+			return err
+		}
+		time.Sleep(5 * time.Second)
+	}
 }
