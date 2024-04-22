@@ -1,6 +1,10 @@
-NEXT_VERSION:=$(shell semtag final -o)
+NAME					:= grpcbin
+BIN						:= ./bin
+NEXT_VERSION	:= $(shell semtag final -o)
 
-dependency:
+dep:
+	go install mvdan.cc/gofumpt@latest
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	sudo apt-get update -y
 	sudo apt-get install -y protobuf-compiler
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
@@ -12,23 +16,46 @@ proto:
     --go-grpc_out=. --go-grpc_opt=paths=source_relative \
 		pb/service.proto
 
-test:
-	go test -v ./...
+build: proto
+	go build -o $(BIN)/$(NAME) ./
+
+clean:
+	rm -rf $(BIN)
+
+fmt:
+	go fmt ./...
+	gofumpt -l -w .
+	go vet ./...
+
+test: proto
+	go test -v
 
 lint:
-	golangci-lint run ./...
+	golangci-lint run -v
 
-build: proto
-	go build -o ./bin/grpcbin .
+cover:
+	go test -coverprofile coverage.out
+
+coverweb: cover
+	go tool cover -html=coverage.out
+
+check: fmt lint cover
+
 
 install: build
-	mv ./bin/grpcbin ~/bin
+	mkdir -p ~/bin
+	mv $(BIN)/$(NAME) ~/bin/$(NAME) 
 
-release:
+uninstall:
+	rm ~/bin/$(NAME)
+
+cliversion:
 	echo "increasing version to $(NEXT_VERSION)"
 	@sed -i 's/"version": "v[0-9]*\.[0-9]*\.[0-9]*"/"version": "$(NEXT_VERSION)"/' main.go
 	@git add main.go
 	@git commit -m "Auto Release - $(NEXT_VERSION)"
+
+release: cliversion
 	@git tag $(NEXT_VERSION)
 	echo "pushing to origin"
 	@git push origin main

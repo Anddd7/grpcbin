@@ -51,7 +51,6 @@ func (cmd *UnaryCmd) Run(globals *Globals) error {
 		grpc.Header(&headers),
 		grpc.Trailer(&trailers),
 	)
-
 	if err != nil {
 		slog.Error("Unary RPC failed", "err", err)
 		return err
@@ -114,7 +113,6 @@ func (cmd *ServerStreamingCmd) Run(globals *Globals) error {
 		Data:              cmd.Message,
 		Count:             cmd.Count,
 	})
-
 	if err != nil {
 		slog.Error("Server Streaming RPC failed", "err", err)
 		return err

@@ -19,8 +19,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type ServeCmd struct {
-}
+type ServeCmd struct{}
 
 func (cmd *ServeCmd) Run(globals *Globals) error {
 	port := fmt.Sprintf(":%d", globals.Port)
