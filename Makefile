@@ -1,5 +1,5 @@
 NAME					:= grpcbin
-BIN						:= ./bin
+DIST					:= ./dist
 NEXT_VERSION	:= $(shell semtag final -o)
 
 dep:
@@ -17,10 +17,10 @@ proto:
 		pb/service.proto
 
 build: proto
-	go build -o $(BIN)/$(NAME) ./
+	go build -o $(DIST)/$(NAME) ./
 
 clean:
-	rm -rf $(BIN)
+	rm -rf $(DIST)
 
 fmt:
 	go fmt ./...
@@ -41,10 +41,9 @@ coverweb: cover
 
 check: fmt lint cover
 
-
 install: build
 	mkdir -p ~/bin
-	mv $(BIN)/$(NAME) ~/bin/$(NAME) 
+	mv $(DIST)/$(NAME) ~/bin/$(NAME) 
 
 uninstall:
 	rm ~/bin/$(NAME)
