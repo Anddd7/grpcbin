@@ -15,6 +15,9 @@ proto:
 test:
 	go test -v ./...
 
+lint:
+	golangci-lint run ./...
+
 build: proto
 	go build -o ./bin/grpcbin .
 

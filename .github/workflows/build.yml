@@ -27,6 +27,11 @@ jobs:
       - name: Generate protobuf
         run: make proto
 
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: v1.54
+
       - name: Run tests
         run: make test
 

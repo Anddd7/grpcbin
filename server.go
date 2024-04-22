@@ -70,7 +70,7 @@ func (s *server) Unary(ctx context.Context, req *pb.UnaryRequest) (*pb.UnaryResp
 
 	if reqAttrs.ResponseHeaders != nil {
 		for key, value := range reqAttrs.ResponseHeaders {
-			grpc.SendHeader(ctx, metadata.Pairs(key, value))
+			_ = grpc.SendHeader(ctx, metadata.Pairs(key, value))
 		}
 	}
 
@@ -118,7 +118,7 @@ func (s *server) ServerStreaming(req *pb.ServerStreamingRequest, stream pb.Grpcb
 
 	if reqAttrs.ResponseHeaders != nil {
 		for key, value := range reqAttrs.ResponseHeaders {
-			grpc.SendHeader(ctx, metadata.Pairs(key, value))
+			_ = grpc.SendHeader(ctx, metadata.Pairs(key, value))
 		}
 	}
 
@@ -182,7 +182,7 @@ func (s *server) ClientStreaming(stream pb.GrpcbinService_ClientStreamingServer)
 
 	if reqAttrs.ResponseHeaders != nil {
 		for key, value := range reqAttrs.ResponseHeaders {
-			grpc.SendHeader(ctx, metadata.Pairs(key, value))
+			_ = grpc.SendHeader(ctx, metadata.Pairs(key, value))
 		}
 	}
 
@@ -234,7 +234,7 @@ func (s *server) BidirectionalStreaming(stream pb.GrpcbinService_BidirectionalSt
 
 		if reqAttrs.ResponseHeaders != nil {
 			for key, value := range reqAttrs.ResponseHeaders {
-				grpc.SendHeader(ctx, metadata.Pairs(key, value))
+				_ = grpc.SendHeader(ctx, metadata.Pairs(key, value))
 			}
 		}
 
