@@ -35,7 +35,7 @@ func main() {
 			Compact: true,
 		}),
 		kong.Vars{
-			"version": "v1.0.0",
+			"version": "v1.0.1",
 		},
 	)
 
