@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"time"
@@ -9,10 +10,21 @@ import (
 )
 
 type Globals struct {
-	Debug  bool   `short:"d" help:"enable debug mode"`
-	Server string `default:"localhost" help:"server address"`
-	Port   int    `default:"50051" help:"server port"`
-	Host   string `default:"localhost" help:"server host, used for load balancing"`
+	Version VersionFlag `short:"v" help:"Print version"`
+	Debug   bool        `short:"d" help:"enable debug mode"`
+	Server  string      `default:"localhost" help:"server address"`
+	Port    int         `default:"50051" help:"server port"`
+	Host    string      `default:"localhost" help:"server host, used for load balancing"`
+}
+
+type VersionFlag string
+
+func (v VersionFlag) Decode(ctx *kong.DecodeContext) error { return nil }
+func (v VersionFlag) IsBool() bool                         { return true }
+func (v VersionFlag) BeforeApply(app *kong.Kong, vars kong.Vars) error {
+	fmt.Printf("grpcbin - %s\n", vars["version"])
+	app.Exit(0)
+	return nil
 }
 
 type CLI struct {
