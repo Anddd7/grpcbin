@@ -107,5 +107,3 @@ grpcbin bidirectional-streaming --message hello --count 5 --delay 2
 ## TODO
 
 - [ ] grpcs support
-- [x] grpc health protocol
-- [ ] golangci-lint
