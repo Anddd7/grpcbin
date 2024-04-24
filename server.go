@@ -11,6 +11,7 @@ import (
 
 	pb "github.com/Anddd7/rubber-duck/grpcbin/pb"
 	grpc_health_pb "google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/reflection"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -31,6 +32,9 @@ func (cmd *ServeCmd) Run(globals *Globals) error {
 	}
 
 	s := grpc.NewServer()
+
+	reflection.Register(s)
+
 	pb.RegisterGrpcbinServiceServer(s, &server{})
 	grpc_health_pb.RegisterHealthServer(s, &server{})
 
