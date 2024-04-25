@@ -1,4 +1,4 @@
-module github.com/Anddd7/rubber-duck/grpcbin
+module github.com/Anddd7/grpcbin
 
 go 1.22.2
 

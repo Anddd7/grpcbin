@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	pb "github.com/Anddd7/rubber-duck/grpcbin/pb"
+	pb "github.com/Anddd7/grpcbin/pb"
 	grpc_health_pb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 

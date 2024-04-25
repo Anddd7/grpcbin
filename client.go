@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"strings"
 
-	pb "github.com/Anddd7/rubber-duck/grpcbin/pb"
+	pb "github.com/Anddd7/grpcbin/pb"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

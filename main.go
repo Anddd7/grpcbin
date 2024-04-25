@@ -47,7 +47,7 @@ func main() {
 			Compact: true,
 		}),
 		kong.Vars{
-			"version": "v1.0.3",
+			"version": "ERROR: Branch must be updated with main for final versions",
 		},
 	)
 

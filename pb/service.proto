@@ -2,72 +2,72 @@ syntax = "proto3";
 
 package main;
 
-option go_package = "github.com/Anddd7/rubber-duck/grpcbin/pb";
+option go_package = "github.com/Anddd7/grpcbin/pb";
 
 service GrpcbinService {
-    // Unary RPC
-    rpc Unary(UnaryRequest) returns (UnaryResponse);
+  // Unary RPC
+  rpc Unary(UnaryRequest) returns (UnaryResponse);
 
-    // Server streaming RPC
-    rpc ServerStreaming(ServerStreamingRequest) returns (stream ServerStreamingResponse);
+  // Server streaming RPC
+  rpc ServerStreaming(ServerStreamingRequest) returns (stream ServerStreamingResponse);
 
-    // Client streaming RPC
-    rpc ClientStreaming(stream ClientStreamingRequest) returns (ClientStreamingResponse);
+  // Client streaming RPC
+  rpc ClientStreaming(stream ClientStreamingRequest) returns (ClientStreamingResponse);
 
-    // Bidirectional streaming RPC
-    rpc BidirectionalStreaming(stream BidirectionalStreamingRequest) returns (stream BidirectionalStreamingResponse);
+  // Bidirectional streaming RPC
+  rpc BidirectionalStreaming(stream BidirectionalStreamingRequest) returns (stream BidirectionalStreamingResponse);
 }
 
 message RequestAttributes {
-    int32 http_code = 1;
-    int32 delay = 2;
-    map<string, string> response_headers = 3;
+  int32 http_code = 1;
+  int32 delay = 2;
+  map<string, string> response_headers = 3;
 }
 
 message ResponseAttributes {
-    string requester_ip = 1;
-    string requester_host = 2;
-    string requester_user_agent = 3;
-    map<string, string> request_headers = 4;
+  string requester_ip = 1;
+  string requester_host = 2;
+  string requester_user_agent = 3;
+  map<string, string> request_headers = 4;
 }
 
 message UnaryRequest {
-    RequestAttributes request_attributes = 1;
-    string data = 2;
+  RequestAttributes request_attributes = 1;
+  string data = 2;
 }
 
 message UnaryResponse {
-    ResponseAttributes response_attributes = 1;
-    string result = 2;
+  ResponseAttributes response_attributes = 1;
+  string result = 2;
 }
 
 message ServerStreamingRequest {
-    RequestAttributes request_attributes = 1;
-    string data = 2;
-    int32 count = 3;
+  RequestAttributes request_attributes = 1;
+  string data = 2;
+  int32 count = 3;
 }
 
 message ServerStreamingResponse {
-    ResponseAttributes response_attributes = 1;
-    string result = 2;
+  ResponseAttributes response_attributes = 1;
+  string result = 2;
 }
 
 message ClientStreamingRequest {
-    RequestAttributes request_attributes = 1;
-    string data = 2;
+  RequestAttributes request_attributes = 1;
+  string data = 2;
 }
 
 message ClientStreamingResponse {
-    ResponseAttributes response_attributes = 1;
-    string result = 2;
+  ResponseAttributes response_attributes = 1;
+  string result = 2;
 }
 
 message BidirectionalStreamingRequest {
-    RequestAttributes request_attributes = 1;
-    string data = 2;
+  RequestAttributes request_attributes = 1;
+  string data = 2;
 }
 
 message BidirectionalStreamingResponse {
-    ResponseAttributes response_attributes = 1;
-    string result = 2;
+  ResponseAttributes response_attributes = 1;
+  string result = 2;
 }
