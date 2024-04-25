@@ -1,6 +1,6 @@
 module github.com/Anddd7/grpcbin
 
-go 1.22.2
+go 1.22
 
 require (
 	github.com/alecthomas/kong v0.9.0
