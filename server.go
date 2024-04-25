@@ -54,6 +54,9 @@ type server struct {
 
 func (s *server) Unary(ctx context.Context, req *pb.UnaryRequest) (*pb.UnaryResponse, error) {
 	reqAttrs := req.RequestAttributes
+	if reqAttrs == nil {
+		reqAttrs = &pb.RequestAttributes{}
+	}
 	respAttrs, err := getResponseAttributes(ctx)
 	if err != nil {
 		return nil, err
@@ -107,6 +110,9 @@ func getResponseAttributes(ctx context.Context) (*pb.ResponseAttributes, error) 
 func (s *server) ServerStreaming(req *pb.ServerStreamingRequest, stream pb.GrpcbinService_ServerStreamingServer) error {
 	ctx := stream.Context()
 	reqAttrs := req.RequestAttributes
+	if reqAttrs == nil {
+		reqAttrs = &pb.RequestAttributes{}
+	}
 	respAttrs, err := getResponseAttributes(ctx)
 	if err != nil {
 		return err
@@ -168,6 +174,9 @@ func (s *server) ClientStreaming(stream pb.GrpcbinService_ClientStreamingServer)
 		}
 
 		reqAttrs = req.RequestAttributes
+		if reqAttrs == nil {
+			reqAttrs = &pb.RequestAttributes{}
+		}
 		receivedData = append(receivedData, req.Data)
 	}
 
@@ -222,6 +231,9 @@ func (s *server) BidirectionalStreaming(stream pb.GrpcbinService_BidirectionalSt
 		}
 
 		reqAttrs := req.RequestAttributes
+		if reqAttrs == nil {
+			reqAttrs = &pb.RequestAttributes{}
+		}
 
 		if reqAttrs.HttpCode > 0 {
 			slog.Debug("Returning HTTP status", "code", reqAttrs.HttpCode)
