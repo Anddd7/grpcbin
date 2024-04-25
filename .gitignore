@@ -1,5 +1,5 @@
 # Protobuf
-*.pb.go
+# *.pb.go
 
 # Output
 dist/*
