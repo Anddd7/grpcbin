@@ -30,7 +30,7 @@ docker pull ghcr.io/anddd7/grpcbin:latest
 # start server
 docker run -d -p 50051:50051 ghcr.io/anddd7/grpcbin
 # send grpc call to server
-docker run -it ghcr.io/anddd7/grpcbin unary --message hello --host <server_container_ip>
+docker run -it ghcr.io/anddd7/grpcbin unary --message hello --server <server_container_ip>
 
 # you can get server ip via 
 docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(docker ps -q)
@@ -47,7 +47,7 @@ Built-in self-signed certificate (see `certs`)
 # start server with tls cert
 docker run -d -p 50051:50051 ghcr.io/anddd7/grpcbin serve --tls-cert="/certs/server.crt" --tls-key="/certs/server.key"
 # send grpc call to server
-docker run -it ghcr.io/anddd7/grpcbin unary --message hello --host <server_container_ip> --tls-cert="/certs/server.crt"
+docker run -it ghcr.io/anddd7/grpcbin unary --message hello --server <server_container_ip> --tls-cert="/certs/server.crt"
 ```
 
 Use your own certificate
@@ -56,7 +56,7 @@ Use your own certificate
 # start server with tls cert
 docker run -d -p 50051:50051 -v /path/to/your/cert:/certs ghcr.io/anddd7/grpcbin serve --tls-cert="/certs/server.crt" --tls-key="/certs/server.key"
 # send grpc call to server
-docker run -it -v /path/to/your/cert:/certs ghcr.io/anddd7/grpcbin unary --message hello --host <server_container_ip> --tls-cert="/certs/server.crt"
+docker run -it -v /path/to/your/cert:/certs ghcr.io/anddd7/grpcbin unary --message hello --server <server_container_ip> --tls-cert="/certs/server.crt"
 ```
 
 ## Usage
@@ -129,3 +129,7 @@ grpcbin bidirectional-streaming --message hello --count 5
 # delay 2s for each round
 grpcbin bidirectional-streaming --message hello --count 5 --delay 2
 ```
+
+## Tips
+
+You you want to use it in kubernetes, check example and tutorial [here](https://github.com/Anddd7/rubber-duck/tree/main/grpcbin).
