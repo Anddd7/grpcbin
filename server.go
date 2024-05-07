@@ -10,6 +10,7 @@ import (
 	"time"
 
 	pb "github.com/Anddd7/grpcbin/pb"
+	"google.golang.org/grpc/credentials"
 	grpc_health_pb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 
@@ -31,7 +32,21 @@ func (cmd *ServeCmd) Run(globals *Globals) error {
 		return err
 	}
 
-	s := grpc.NewServer()
+	var s *grpc.Server
+
+	if globals.TlsCert != "" && globals.TlsKey != "" {
+		creds, err := credentials.NewServerTLSFromFile(globals.TlsCert, globals.TlsKey)
+		if err != nil {
+			slog.Error("failed to load TLS keys", "err", err)
+			return err
+		}
+
+		slog.Info("TLS enabled")
+
+		s = grpc.NewServer(grpc.Creds(creds))
+	} else {
+		s = grpc.NewServer()
+	}
 
 	reflection.Register(s)
 

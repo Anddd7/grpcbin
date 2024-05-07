@@ -8,14 +8,17 @@ Binary
 
 ```sh
 # install binary
-curl -sSL https://github.com/Anddd7/grpcbin/releases/download/v0.0.1/grpcbin -o grpcbin
-chmod +x grpcbin
+export VERSION="1.1.0"
+export PLATFORM="linux_amd64"
+
+curl -sSL https://github.com/Anddd7/grpcbin/releases/download/v${VERSION}/grpcbin_v${VERSION}_${PLATFORM}.tar.gz -o grpcbin.tar.gz
+tar -xzf grpcbin.tar.gz grpcbin
 
 # start server
-grpcbin serve
+./grpcbin serve
 
 # send grpc call
-grpcbin unary --message hello
+./grpcbin unary --message hello
 ```
 
 Docker
@@ -26,11 +29,34 @@ docker pull ghcr.io/anddd7/grpcbin:latest
 
 # start server
 docker run -d -p 50051:50051 ghcr.io/anddd7/grpcbin
-# send grpc call
-docker run -it ghcr.io/anddd7/grpcbin ./grpcbin unary --message hello --host <server_container_ip>
+# send grpc call to server
+docker run -it ghcr.io/anddd7/grpcbin unary --message hello --host <server_container_ip>
 
 # you can get server ip via 
 docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(docker ps -q)
+```
+
+### TLS Support
+
+> from v1.1.0, it support tls connection. \
+> you can use `--tls-cert` and `--tls-key` to define the cert and key file for both server and client.
+
+Built-in self-signed certificate (see `certs`)
+
+```sh
+# start server with tls cert
+docker run -d -p 50051:50051 ghcr.io/anddd7/grpcbin serve --tls-cert="/certs/server.crt" --tls-key="/certs/server.key"
+# send grpc call to server
+docker run -it ghcr.io/anddd7/grpcbin unary --message hello --host <server_container_ip> --tls-cert="/certs/server.crt"
+```
+
+Use your own certificate
+
+```sh
+# start server with tls cert
+docker run -d -p 50051:50051 -v /path/to/your/cert:/certs ghcr.io/anddd7/grpcbin serve --tls-cert="/certs/server.crt" --tls-key="/certs/server.key"
+# send grpc call to server
+docker run -it -v /path/to/your/cert:/certs ghcr.io/anddd7/grpcbin unary --message hello --host <server_container_ip> --tls-cert="/certs/server.crt"
 ```
 
 ## Usage
@@ -103,7 +129,3 @@ grpcbin bidirectional-streaming --message hello --count 5
 # delay 2s for each round
 grpcbin bidirectional-streaming --message hello --count 5 --delay 2
 ```
-
-## TODO
-
-- [ ] grpcs support

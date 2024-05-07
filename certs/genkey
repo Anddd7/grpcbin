@@ -1,0 +1,17 @@
+#!/bin/bash
+
+CN="/CN=localhost"
+SAN="subjectAltName = DNS:localhost, IP:127.0.0.1"
+
+openssl genrsa -out server.key 2048
+openssl req -new -key server.key -out server.csr -subj $CN -config <(
+  echo "[req]"
+  echo "req_extensions = req_ext"
+  echo "[req_ext]"
+  echo $SAN
+)
+
+openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt -extensions req_ext -extfile <(
+  echo "[req_ext]"
+  echo $SAN
+)

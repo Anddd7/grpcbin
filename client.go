@@ -10,14 +10,27 @@ import (
 	pb "github.com/Anddd7/grpcbin/pb"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 )
 
-func connect(serverAddr string, host string) (pb.GrpcbinServiceClient, error) {
+func connect(serverAddr string, host string, tlsCert string) (pb.GrpcbinServiceClient, error) {
+	var err error
+	var creds credentials.TransportCredentials
+	if tlsCert != "" {
+		creds, err = credentials.NewClientTLSFromFile(tlsCert, "")
+		if err != nil {
+			slog.Error("failed to load TLS certificate", "err", err)
+			return nil, err
+		}
+	} else {
+		creds = insecure.NewCredentials()
+	}
+
 	conn, err := grpc.Dial(
 		serverAddr,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithTransportCredentials(creds),
 		grpc.WithAuthority(host),
 	)
 	if err != nil {
@@ -37,7 +50,7 @@ type UnaryCmd struct {
 }
 
 func (cmd *UnaryCmd) Run(globals *Globals) error {
-	client, err := connect(fmt.Sprintf("%s:%d", globals.Server, globals.Port), globals.Host)
+	client, err := connect(fmt.Sprintf("%s:%d", globals.Server, globals.Port), globals.Host, globals.TlsCert)
 	if err != nil {
 		return err
 	}
@@ -102,7 +115,7 @@ type ServerStreamingCmd struct {
 }
 
 func (cmd *ServerStreamingCmd) Run(globals *Globals) error {
-	client, err := connect(fmt.Sprintf("%s:%d", globals.Server, globals.Port), globals.Host)
+	client, err := connect(fmt.Sprintf("%s:%d", globals.Server, globals.Port), globals.Host, globals.TlsCert)
 	if err != nil {
 		return err
 	}
@@ -141,7 +154,7 @@ type ClientStreamingCmd struct {
 }
 
 func (cmd *ClientStreamingCmd) Run(globals *Globals) error {
-	client, err := connect(fmt.Sprintf("%s:%d", globals.Server, globals.Port), globals.Host)
+	client, err := connect(fmt.Sprintf("%s:%d", globals.Server, globals.Port), globals.Host, globals.TlsCert)
 	if err != nil {
 		return err
 	}
@@ -183,7 +196,7 @@ type BidirectionalStreamingCmd struct {
 }
 
 func (cmd *BidirectionalStreamingCmd) Run(globals *Globals) error {
-	client, err := connect(fmt.Sprintf("%s:%d", globals.Server, globals.Port), globals.Host)
+	client, err := connect(fmt.Sprintf("%s:%d", globals.Server, globals.Port), globals.Host, globals.TlsCert)
 	if err != nil {
 		return err
 	}

@@ -31,6 +31,9 @@ FROM alpine:3.19
 COPY --from=builder /bin/grpc_health_probe /bin/grpc_health_probe
 COPY --from=builder /app/grpcbin /grpcbin
 
+COPY certs /certs
+
 EXPOSE 50051
 
-CMD ["/grpcbin", "serve"]
+ENTRYPOINT ["/grpcbin"]
+CMD ["serve"]
