@@ -15,3 +15,5 @@ openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt -
   echo "[req_ext]"
   echo $SAN
 )
+
+rm server.csr
