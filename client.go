@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"log/slog"
@@ -15,15 +16,35 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-func connect(serverAddr string, host string, tlsCert string) (pb.GrpcbinServiceClient, error) {
+func loadClientTlsConfig(caCertFile, certFile, keyFile string) (*tls.Config, error) {
+	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load server key pair: %v", err)
+	}
+
+	cacertPool, err := loadCACertPool(caCertFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load CA certificate: %v", err)
+	}
+
+	return &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		RootCAs:      cacertPool,
+	}, nil
+}
+
+func connect(globals *Globals) (pb.GrpcbinServiceClient, error) {
+	serverAddr := fmt.Sprintf("%s:%d", globals.Server, globals.Port)
+
 	var err error
 	var creds credentials.TransportCredentials
-	if tlsCert != "" {
-		creds, err = credentials.NewClientTLSFromFile(tlsCert, "")
+	if globals.TlsCert != "" && globals.TlsKey != "" {
+		tlsConfig, err := loadClientTlsConfig(globals.TlsCa, globals.TlsCert, globals.TlsKey)
 		if err != nil {
-			slog.Error("failed to load TLS certificate", "err", err)
+			slog.Error("failed to load client TLS config", "err", err)
 			return nil, err
 		}
+		creds = credentials.NewTLS(tlsConfig)
 	} else {
 		creds = insecure.NewCredentials()
 	}
@@ -31,7 +52,7 @@ func connect(serverAddr string, host string, tlsCert string) (pb.GrpcbinServiceC
 	conn, err := grpc.Dial(
 		serverAddr,
 		grpc.WithTransportCredentials(creds),
-		grpc.WithAuthority(host),
+		grpc.WithAuthority(globals.Host),
 	)
 	if err != nil {
 		slog.Error("failed to connect", "err", err)
@@ -50,7 +71,7 @@ type UnaryCmd struct {
 }
 
 func (cmd *UnaryCmd) Run(globals *Globals) error {
-	client, err := connect(fmt.Sprintf("%s:%d", globals.Server, globals.Port), globals.Host, globals.TlsCert)
+	client, err := connect(globals)
 	if err != nil {
 		return err
 	}
@@ -115,7 +136,7 @@ type ServerStreamingCmd struct {
 }
 
 func (cmd *ServerStreamingCmd) Run(globals *Globals) error {
-	client, err := connect(fmt.Sprintf("%s:%d", globals.Server, globals.Port), globals.Host, globals.TlsCert)
+	client, err := connect(globals)
 	if err != nil {
 		return err
 	}
@@ -154,7 +175,7 @@ type ClientStreamingCmd struct {
 }
 
 func (cmd *ClientStreamingCmd) Run(globals *Globals) error {
-	client, err := connect(fmt.Sprintf("%s:%d", globals.Server, globals.Port), globals.Host, globals.TlsCert)
+	client, err := connect(globals)
 	if err != nil {
 		return err
 	}
@@ -196,7 +217,7 @@ type BidirectionalStreamingCmd struct {
 }
 
 func (cmd *BidirectionalStreamingCmd) Run(globals *Globals) error {
-	client, err := connect(fmt.Sprintf("%s:%d", globals.Server, globals.Port), globals.Host, globals.TlsCert)
+	client, err := connect(globals)
 	if err != nil {
 		return err
 	}

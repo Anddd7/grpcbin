@@ -15,6 +15,7 @@ type Globals struct {
 	Server  string      `default:"localhost" help:"server address"`
 	Port    int         `default:"50051" help:"server port"`
 	Host    string      `default:"localhost" help:"server host, used for load balancing"`
+	TlsCa   string      `help:"path to the CA certificate"`
 	TlsCert string      `help:"path to the TLS certificate"`
 	TlsKey  string      `help:"path to the TLS key"`
 }

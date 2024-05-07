@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"log"
 	"log/slog"
 	"net"
+	"os"
 	"strings"
 	"time"
 
@@ -23,6 +26,37 @@ import (
 
 type ServeCmd struct{}
 
+func loadServerTlsConfig(caCertFile, certFile, keyFile string) (*tls.Config, error) {
+	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load server key pair: %v", err)
+	}
+
+	cacertPool, err := loadCACertPool(caCertFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load CA certificate: %v", err)
+	}
+
+	return &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+		ClientCAs:    cacertPool,
+	}, nil
+}
+
+func loadCACertPool(caCertFile string) (*x509.CertPool, error) {
+	certPool := x509.NewCertPool()
+	caCert, err := os.ReadFile(caCertFile)
+	if err != nil {
+		return nil, err
+	}
+	ok := certPool.AppendCertsFromPEM(caCert)
+	if !ok {
+		return nil, err
+	}
+	return certPool, nil
+}
+
 func (cmd *ServeCmd) Run(globals *Globals) error {
 	port := fmt.Sprintf(":%d", globals.Port)
 
@@ -35,15 +69,14 @@ func (cmd *ServeCmd) Run(globals *Globals) error {
 	var s *grpc.Server
 
 	if globals.TlsCert != "" && globals.TlsKey != "" {
-		creds, err := credentials.NewServerTLSFromFile(globals.TlsCert, globals.TlsKey)
+		tlsConfig, err := loadServerTlsConfig(globals.TlsCa, globals.TlsCert, globals.TlsKey)
 		if err != nil {
-			slog.Error("failed to load TLS keys", "err", err)
+			slog.Error("failed to load server TLS config", "err", err)
 			return err
 		}
-
 		slog.Info("TLS enabled")
 
-		s = grpc.NewServer(grpc.Creds(creds))
+		s = grpc.NewServer(grpc.Creds(credentials.NewTLS(tlsConfig)))
 	} else {
 		s = grpc.NewServer()
 	}
