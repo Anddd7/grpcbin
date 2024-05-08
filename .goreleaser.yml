@@ -29,3 +29,7 @@ archives:
   format: tar.gz
   files:
   - LICENSE
+
+changelog:
+  sort: asc
+  use: github
