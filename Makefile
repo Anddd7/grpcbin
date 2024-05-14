@@ -28,13 +28,13 @@ fmt:
 	go vet ./...
 
 test: proto
-	go test -v
+	go test -v ./...
 
 lint:
 	golangci-lint run -v
 
 cover:
-	go test -coverprofile coverage.out
+	go test -coverprofile coverage.out ./...
 
 coverweb: cover
 	go tool cover -html=coverage.out
@@ -43,7 +43,7 @@ check: fmt lint cover
 
 install: build
 	mkdir -p ~/bin
-	mv $(DIST)/$(NAME) ~/bin/$(NAME) 
+	mv $(DIST)/$(NAME) ~/bin/$(NAME)
 
 uninstall:
 	rm ~/bin/$(NAME)
