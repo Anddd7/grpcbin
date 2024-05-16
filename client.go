@@ -28,7 +28,7 @@ func connect(serverAddr string, host string, tlsCert string) (pb.GrpcbinServiceC
 		creds = insecure.NewCredentials()
 	}
 
-	conn, err := grpc.Dial(
+	conn, err := grpc.NewClient(
 		serverAddr,
 		grpc.WithTransportCredentials(creds),
 		grpc.WithAuthority(host),
