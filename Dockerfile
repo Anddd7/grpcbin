@@ -4,10 +4,6 @@ WORKDIR /app
 
 RUN apk update && apk add protobuf
 
-RUN GO111MODULE=on && \
-  go install google.golang.org/protobuf/cmd/protoc-gen-go@latest && \
-  go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-
 RUN GRPC_HEALTH_PROBE_VERSION=v0.4.13 && \
   wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
   chmod +x /bin/grpc_health_probe
@@ -17,12 +13,16 @@ COPY go.sum .
 
 RUN go mod download
 
+RUN GO111MODULE=on && go install \
+  github.com/bufbuild/buf/cmd/buf \
+  github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
+  github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
+  google.golang.org/grpc/cmd/protoc-gen-go-grpc \
+  google.golang.org/protobuf/cmd/protoc-gen-go
+
 COPY . .
 
-RUN protoc \
-  --go_out=. --go_opt=paths=source_relative \
-  --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-  pb/service.proto
+RUN buf generate
 
 RUN go build -o grpcbin .
 
