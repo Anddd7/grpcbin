@@ -4,6 +4,7 @@ before:
   - make dep
   - make build
   - make check
+
 builds:
 - id: grpcbin
   main: .
@@ -32,4 +33,8 @@ archives:
 
 changelog:
   sort: asc
-  use: github
+
+release:
+  github:
+    owner: anddd7
+    name: grpcbin
