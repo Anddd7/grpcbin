@@ -7,7 +7,7 @@ require (
 	github.com/bufbuild/buf v1.33.0
 	github.com/golangci/golangci-lint v1.59.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20240604185151-ef581f913117
+	google.golang.org/genproto/googleapis/api a8a62080eff3
 	google.golang.org/grpc v1.64.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.4.0
 	google.golang.org/protobuf v1.34.2
