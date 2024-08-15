@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/alecthomas/kong v0.9.0
-	github.com/bufbuild/buf v1.33.0
+	github.com/bufbuild/buf v1.36.0
 	github.com/golangci/golangci-lint v1.60.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240604185151-ef581f913117
