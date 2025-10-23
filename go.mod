@@ -4,7 +4,7 @@ go 1.23.3
 
 require (
 	github.com/alecthomas/kong v1.4.0
-	github.com/bufbuild/buf v1.47.2
+	github.com/bufbuild/buf v1.59.0
 	github.com/golangci/golangci-lint v1.62.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.23.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20241104194629-dd2ea8efbc28
