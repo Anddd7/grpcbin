@@ -3,7 +3,7 @@ module github.com/Anddd7/grpcbin
 go 1.23.3
 
 require (
-	github.com/alecthomas/kong v1.4.0
+	github.com/alecthomas/kong v1.14.0
 	github.com/bufbuild/buf v1.47.2
 	github.com/golangci/golangci-lint v1.62.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.23.0
