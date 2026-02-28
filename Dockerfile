@@ -1,4 +1,4 @@
-FROM golang:1.23.3-alpine3.19 AS builder
+FROM golang:1.23.4-alpine3.19 AS builder
 
 WORKDIR /app
 
@@ -26,7 +26,7 @@ RUN buf generate
 
 RUN go build -o grpcbin .
 
-FROM alpine:3.20
+FROM alpine:3.23
 
 COPY --from=builder /bin/grpc_health_probe /bin/grpc_health_probe
 COPY --from=builder /app/grpcbin /grpcbin
